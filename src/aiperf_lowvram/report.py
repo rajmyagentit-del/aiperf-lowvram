@@ -9,19 +9,11 @@ from __future__ import annotations
 
 from aiperf_lowvram.provenance import ProvenanceEnvelope
 
-
 _SEPARATOR = "═" * 62
 
 
 def render_report(envelope: ProvenanceEnvelope) -> str:
-    """Render a full benchmark report as a plain-text string.
-
-    Args:
-        envelope: A ProvenanceEnvelope from provenance.wrap_result().
-
-    Returns:
-        Multi-line string ready for print() or file write.
-    """
+    """Render a full benchmark report as a plain-text string."""
     hw = envelope.gpu
     result = envelope.result
     lines: list[str] = []
@@ -69,7 +61,7 @@ def render_report(envelope: ProvenanceEnvelope) -> str:
         if val is not None:
             lines.append(f"    {label}: {val}")
 
-    # ── Any extra keys the caller put in result ──────────────────────
+    # ── Any extra keys ───────────────────────────────────────────────
     known_keys = {k for k, _ in metric_keys}
     extras = {k: v for k, v in result.items() if k not in known_keys}
     if extras:
