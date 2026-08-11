@@ -21,21 +21,12 @@ from aiperf_lowvram.gpu import GpuProfile, detect_gpu
 
 @dataclass
 class ProvenanceEnvelope:
-    """A benchmark result bound to its hardware and software context.
-
-    Attributes:
-        result: The raw benchmark result dict (from AIPerf JSON export
-                or your own measurement code).
-        gpu: Profile of the GPU the benchmark ran on.
-        timestamp_utc: When the benchmark completed.
-        python_version: Python interpreter version.
-        plugin_version: Version of this plugin.
-    """
+    """A benchmark result bound to its hardware and software context."""
 
     result: dict[str, Any]
     gpu: GpuProfile
     timestamp_utc: str = field(
-        default_factory=lambda: datetime.datetime.utcnow().isoformat() + "Z"
+        default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat()
     )
     python_version: str = field(
         default_factory=lambda: sys.version.split()[0]
