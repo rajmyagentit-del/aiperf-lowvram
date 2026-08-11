@@ -22,13 +22,13 @@ Quick start:
 
 __version__ = "0.1.0"
 __all__ = [
-    "GpuProfile",
-    "detect_gpu",
     "BenchmarkConfig",
+    "GpuProfile",
     "GuardResult",
-    "run_guards",
     "ProvenanceEnvelope",
-    "wrap_result",
+    "detect_gpu",
     "print_report",
     "render_report",
+    "run_guards",
+    "wrap_result",
 ]
