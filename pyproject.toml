@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aiperf-lowvram"
+version = "0.1.0"
+description = "Hardware-aware benchmarking guards for AIPerf on low-VRAM and pre-Ampere GPUs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "rajmyagentit-del", email = "surendramyjobit@gmail.com" }]
+keywords = ["llm", "inference", "benchmarking", "aiperf", "gpu", "nvidia"]
+
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/rajmyagentit-del/aiperf-lowvram"
+Issues = "https://github.com/rajmyagentit-del/aiperf-lowvram/issues"
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
