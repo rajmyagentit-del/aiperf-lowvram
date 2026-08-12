@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiperf-lowvram — Live Demo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --text: #e8e8e8;
+    --text2: #9a9a9a;
+    --text3: #6a6a6a;
+    --accent: #4f8ef7;
+    --accent-bg: #1a2540;
+    --success: #3ecf8e;
+    --success-bg: #0d2a1f;
+    --warn: #f5a623;
+    --warn-bg: #2a1f0d;
+    --danger: #e5534b;
+    --danger-bg: #2a0f0d;
+    --radius: 8px;
+    --mono: 'Courier New', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  header .sub {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .badge-nvidia {
+    font-size: 11px;
+    background: #76b900;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  .github-link {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 700px) {
+    main { grid-template-columns: 1fr; padding: 1rem; }
+    header { padding: 1rem; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .panel-body { padding: 1rem; }
+
+  .gpu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+
+  .gpu-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s;
+    color: var(--text);
+  }
+
+  .gpu-btn:hover { border-color: var(--accent); }
+
+  .gpu-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .gpu-btn .gname { font-size: 12px; font-weight: 600; }
+  .gpu-btn .gsub { font-size: 10px; color: var(--text2); margin-top: 1px; }
+
+  .hw-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .hw-table td { padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .hw-table td:first-child { color: var(--text2); }
+  .hw-table td:last-child { text-align: right; font-weight: 500; }
+  .hw-table tr:last-child td { border-bottom: none; }
+
+  .pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 99px;
+  }
+  .pill-yes { background: var(--success-bg); color: var(--success); }
+  .pill-no { background: var(--danger-bg); color: var(--danger); }
+
+  .slider-row {
+    margin-bottom: 0.9rem;
+  }
+
+  .slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .slider-label-row span:first-child {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .slider-label-row span:last-child {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 4px;
+    cursor: pointer;
+  }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  input[type=checkbox] {
+    accent-color: var(--accent);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+
+  .run-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    transition: opacity 0.15s;
+  }
+
+  .run-btn:hover { opacity: 0.85; }
+  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .guard-box {
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .guard-safe { background: var(--success-bg); border: 1px solid var(--success); color: var(--success); }
+  .guard-warn { background: var(--warn-bg); border: 1px solid var(--warn); color: var(--warn); }
+  .guard-err { background: var(--danger-bg); border: 1px solid var(--danger); color: var(--danger); }
+
+  .guard-item {
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .guard-item:last-child { border-bottom: none; }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .metric-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    text-align: center;
+  }
+
+  .metric-card .mlabel { font-size: 10px; color: var(--text2); margin-bottom: 4px; }
+  .metric-card .mval { font-size: 22px; font-weight: 700; color: var(--text); }
+  .metric-card .munit { font-size: 10px; color: var(--text3); }
+
+  .json-box {
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text2);
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  .json-key { color: #79b8ff; }
+  .json-str { color: #85e89d; }
+  .json-num { color: #f8c555; }
+  .json-bool-true { color: #85e89d; }
+  .json-bool-false { color: #e5534b; }
+
+  .status-bar {
+    font-size: 11px;
+    color: var(--text3);
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1rem;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  .section-title-sm {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+  }
+
+  .crash-msg {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>aiperf-lowvram</h1>
+    <div class="sub">Hardware-aware benchmarking guards for NVIDIA AIPerf</div>
+  </div>
+  <span class="badge-nvidia">NVIDIA AIPerf plugin</span>
+  <a class="github-link" href="https://github.com/rajmyagentit-del/aiperf-lowvram" target="_blank">View on GitHub ↗</a>
+</header>
+
+<main>
+
+  <!-- LEFT COLUMN: controls -->
+  <div>
+
+    <!-- GPU selector -->
+    <div class="panel" style="margin-bottom:1rem;">
+      <div class="panel-header">Step 1 — select GPU</div>
+      <div class="panel-body">
+        <div class="gpu-grid" id="gpuGrid"></div>
+        <table class="hw-table" id="hwTable"></table>
+      </div>
+    </div>
+
+    <!-- Config -->
+    <div class="panel" style="margin-bottom:1rem;">
+      <div class="panel-header">Step 2 — configure benchmark</div>
+      <div class="panel-body">
+
+        <div class="slider-row">
+          <div class="slider-label-row"><span>Concurrency</span><span id="concVal">4</span></div>
+          <input type="range" id="conc" min="1" max="32" value="4" step="1">
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label-row"><span>Input tokens (ISL)</span><span id="islVal">512</span></div>
+          <input type="range" id="isl" min="128" max="8192" value="512" step="128">
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label-row"><span>Output tokens (OSL)</span><span id="oslVal">256</span></div>
+          <input type="range" id="osl" min="64" max="2048" value="256" step="64">
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label-row"><span>Model size</span><span id="modelVal">0.5B</span></div>
+          <input type="range" id="model" min="0.5" max="13" value="0.5" step="0.5">
+        </div>
+
+        <div class="toggle-row">
+          <span>Request FP8</span>
+          <input type="checkbox" id="fp8">
+        </div>
+        <div class="toggle-row">
+          <span>Request BF16</span>
+          <input type="checkbox" id="bf16">
+        </div>
+
+        <button class="run-btn" id="runBtn">Simulate benchmark run</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: output -->
+  <div>
+
+    <!-- Guards -->
+    <div class="panel" style="margin-bottom:1rem;">
+      <div class="panel-header">Step 3 — safety guard output</div>
+      <div class="panel-body" id="guardPanel"></div>
+    </div>
+
+    <!-- Results -->
+    <div class="panel" id="resultsPanel" style="display:none;">
+      <div class="panel-header">Step 4 — benchmark result with provenance</div>
+      <div class="panel-body">
+        <div class="metrics-row" id="metricsRow"></div>
+        <div class="section-title-sm">Provenance-tagged JSON output</div>
+        <div class="json-box" id="jsonBox"></div>
+      </div>
+      <div class="status-bar">
+        <span><span class="status-dot"></span>aiperf-lowvram v0.1.0</span>
+        <span id="statusTs"></span>
+      </div>
+    </div>
+
+    <div id="crashBox"></div>
+
+  </div>
+
+</main>
+
+<script>
+const GPUS = [
+  { name:"Tesla T4",   arch:"Turing",  cc:[7,5], vram:15.1, bf16:false, fp8:false },
+  { name:"RTX 3090",   arch:"Ampere",  cc:[8,6], vram:24.0, bf16:true,  fp8:false },
+  { name:"A100 80GB",  arch:"Ampere",  cc:[8,0], vram:80.0, bf16:true,  fp8:false },
+  { name:"RTX 4090",   arch:"Ada",     cc:[8,9], vram:24.0, bf16:true,  fp8:true  },
+  { name:"H100 SXM",   arch:"Hopper",  cc:[9,0], vram:80.0, bf16:true,  fp8:true  },
+];
+
+let sel = 0;
+
+function pill(v){ return v ? '<span class="pill pill-yes">yes</span>' : '<span class="pill pill-no">no</span>'; }
+
+function renderGpuGrid(){
+  document.getElementById('gpuGrid').innerHTML = GPUS.map((g,i)=>`
+    <button class="gpu-btn ${i===sel?'active':''}" onclick="selectGpu(${i})">
+      <div class="gname">${g.name}</div>
+      <div class="gsub">${g.arch} · sm_${g.cc[0]}${g.cc[1]}</div>
+    </button>`).join('');
+}
+
+function renderHw(){
+  const g=GPUS[sel];
+  document.getElementById('hwTable').innerHTML=`
+    <tr><td>Compute cap</td><td>sm_${g.cc[0]}${g.cc[1]}</td></tr>
+    <tr><td>VRAM</td><td>${g.vram.toFixed(1)} GiB</td></tr>
+    <tr><td>BF16 native</td><td>${pill(g.bf16)}</td></tr>
+    <tr><td>FP8 native</td><td>${pill(g.fp8)}</td></tr>`;
+}
+
+function selectGpu(i){
+  sel=i; renderGpuGrid(); renderHw(); updateGuards();
+  document.getElementById('resultsPanel').style.display='none';
+  document.getElementById('crashBox').innerHTML='';
+}
+
+function cfg(){
+  return {
+    conc: parseInt(document.getElementById('conc').value),
+    isl:  parseInt(document.getElementById('isl').value),
+    osl:  parseInt(document.getElementById('osl').value),
+    model:parseFloat(document.getElementById('model').value),
+    fp8:  document.getElementById('fp8').checked,
+    bf16: document.getElementById('bf16').checked,
+  };
+}
+
+function safeConc(g,modelB){
+  const w=modelB*2, u=g.vram*0.8;
+  if(u<=w) return 1;
+  return Math.max(1,Math.floor((u-w)/0.5));
+}
+
+function updateGuards(){
+  const g=GPUS[sel], c=cfg();
+  const warns=[], errs=[];
+  if(c.fp8&&!g.fp8) warns.push('⚠  FP8 requested — '+g.name+' has no native FP8. Falls back to weight-only emulation. Numbers NOT comparable to Hopper/Ada results.');
+  if(c.bf16&&!g.bf16) warns.push('⚠  BF16 requested — '+g.name+' (pre-Ampere) will silently cast tensors to FP16. Model accuracy and throughput will differ.');
+  const sc=safeConc(g,c.model);
+  if(c.conc>sc) errs.push('✗  Concurrency '+c.conc+' exceeds safe limit for '+g.vram.toFixed(1)+' GiB VRAM with '+c.model+'B model. Max safe: '+sc+'. Expected OOM crash.');
+  const ts=c.isl+c.osl;
+  if(g.vram<20&&ts>4096) warns.push('⚠  Total sequence '+ts+' tokens on '+g.vram.toFixed(1)+' GiB GPU. KV cache pressure may OOM. Recommend ISL=512, OSL=256.');
+
+  const el=document.getElementById('guardPanel');
+  if(!errs.length&&!warns.length){
+    el.innerHTML='<div class="guard-box guard-safe">✓ Configuration is safe for '+g.name+'. Safe max concurrency: '+sc+'.</div>';
+  } else {
+    let html=errs.length
+      ? '<div class="guard-box guard-err">✗ Unsafe — '+errs.length+' error'+(errs.length>1?'s':'')+', '+warns.length+' warning'+(warns.length!==1?'s':'')+'</div>'
+      : '<div class="guard-box guard-warn">⚠ '+warns.length+' warning'+(warns.length!==1?'s':'')+' — run will proceed but numbers may be misleading</div>';
+    if(errs.length) html+='<div style="margin-bottom:0.5rem">'+errs.map(e=>'<div class="guard-item" style="color:var(--danger)">'+e+'</div>').join('')+'</div>';
+    if(warns.length) html+=warns.map(w=>'<div class="guard-item" style="color:var(--warn)">'+w+'</div>').join('');
+    if(errs.length) html+='<div class="guard-item" style="color:var(--accent)">💡 Suggested safe concurrency: '+sc+'</div>';
+    el.innerHTML=html;
+  }
+}
+
+function syntaxColor(json){
+  return json
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?:\s*:)?)/g, m =>
+      m.endsWith(':') ? '<span class="json-key">'+m+'</span>' : '<span class="json-str">'+m+'</span>')
+    .replace(/\b(true)\b/g,'<span class="json-bool-true">true</span>')
+    .replace(/\b(false)\b/g,'<span class="json-bool-false">false</span>')
+    .replace(/\b(-?\d+\.?\d*)\b(?!")/g,'<span class="json-num">$1</span>');
+}
+
+function runBenchmark(){
+  const g=GPUS[sel], c=cfg();
+  const sc=safeConc(g,c.model);
+  document.getElementById('resultsPanel').style.display='none';
+  document.getElementById('crashBox').innerHTML='';
+
+  if(c.conc>sc){
+    document.getElementById('crashBox').innerHTML='<div class="crash-msg">💥 Simulated OOM crash — GPU out of memory. Concurrency '+c.conc+' exceeds the '+g.vram.toFixed(1)+' GiB VRAM limit for a '+c.model+'B model (max safe: '+sc+'). Reduce concurrency and retry.</div>';
+    return;
+  }
+
+  const arch={'Turing':2.2,'Ampere':1.3,'Ada':1.1,'Hopper':1.0}[g.arch]||1.0;
+  const sq=(c.isl+c.osl)/768;
+  const mp=c.model/0.5;
+  const cp=Math.sqrt(c.conc);
+
+  const ttft=Math.round(80*arch*sq*mp);
+  const ttftp99=Math.round(ttft*1.4);
+  const itl=parseFloat((8*arch*mp).toFixed(1));
+  const itlp99=parseFloat((itl*1.35).toFixed(1));
+  const tps=Math.round(1000/itl*c.conc/cp);
+
+  const ts=new Date().toISOString();
+  const data={
+    plugin:"aiperf-lowvram",
+    plugin_version:"0.1.0",
+    timestamp_utc:ts,
+    environment:{python_version:"3.11.9",platform:"Linux-6.1.0-x86_64"},
+    hardware:{
+      gpu_name:g.name,
+      architecture:g.arch,
+      compute_capability:"sm_"+g.cc[0]+g.cc[1],
+      total_memory_gib:g.vram,
+      supports_bfloat16:g.bf16,
+      supports_native_fp8:g.fp8,
+      supports_native_fp4:false,
+    },
+    result:{
+      ttft_ms_avg:ttft,
+      ttft_ms_p99:ttftp99,
+      itl_ms_avg:itl,
+      itl_ms_p99:itlp99,
+      throughput_tps:tps,
+      concurrency:c.conc,
+      input_sequence_length:c.isl,
+      output_sequence_length:c.osl,
+      model_size_b:c.model,
+      precision:c.fp8?(g.fp8?"fp8-native":"fp8-emulated"):c.bf16?(g.bf16?"bf16-native":"bf16-cast-fp16"):"fp16",
+    }
+  };
+
+  document.getElementById('metricsRow').innerHTML=`
+    <div class="metric-card"><div class="mlabel">TTFT avg</div><div class="mval">${ttft}</div><div class="munit">ms</div></div>
+    <div class="metric-card"><div class="mlabel">ITL avg</div><div class="mval">${itl}</div><div class="munit">ms</div></div>
+    <div class="metric-card"><div class="mlabel">Throughput</div><div class="mval">${tps}</div><div class="munit">tok/s</div></div>`;
+
+  document.getElementById('jsonBox').innerHTML=syntaxColor(JSON.stringify(data,null,2));
+  document.getElementById('statusTs').textContent=ts;
+  document.getElementById('resultsPanel').style.display='block';
+}
+
+['conc','isl','osl'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{
+    document.getElementById(id+'Val').textContent=document.getElementById(id).value;
+    updateGuards();
+    document.getElementById('resultsPanel').style.display='none';
+    document.getElementById('crashBox').innerHTML='';
+  });
+});
+
+document.getElementById('model').addEventListener('input',()=>{
+  document.getElementById('modelVal').textContent=document.getElementById('model').value+'B';
+  updateGuards();
+  document.getElementById('resultsPanel').style.display='none';
+  document.getElementById('crashBox').innerHTML='';
+});
+
+['fp8','bf16'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',()=>{
+    updateGuards();
+    document.getElementById('resultsPanel').style.display='none';
+    document.getElementById('crashBox').innerHTML='';
+  });
+});
+
+document.getElementById('runBtn').addEventListener('click',runBenchmark);
+
+renderGpuGrid(); renderHw(); updateGuards();
+</script>
+</body>
+</html>
