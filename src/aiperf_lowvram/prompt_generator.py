@@ -8,11 +8,9 @@ approach so benchmark results are methodologically comparable.
 from __future__ import annotations
 
 import random
-import string
 
-
-# Word list that produces realistic token distributions
-# Average English word tokenizes to ~1.3 tokens in most BPE tokenizers
+# Word pool producing realistic BPE token distributions.
+# Average English technical word tokenizes to ~1.3 tokens.
 _WORD_POOL = [
     "the", "model", "inference", "latency", "throughput", "token",
     "generate", "neural", "network", "attention", "transformer",
@@ -27,31 +25,29 @@ _WORD_POOL = [
 ]
 
 
-def generate_prompt(target_tokens: int, words_per_token: float = 0.75) -> str:
+def generate_prompt(target_tokens: int, seed_offset: int = 0) -> str:
     """Generate a synthetic prompt targeting approximately target_tokens.
 
-    Uses a word pool with realistic token distribution rather than
-    random characters, so the prompt looks like natural language to
-    the tokenizer and produces representative prefill behaviour.
+    Matches AIPerf methodology: synthetic content at exact ISL targets
+    rather than a fixed hardcoded string. This ensures TTFT measurements
+    reflect the actual prefill cost of the target sequence length.
 
     Args:
         target_tokens: Approximate number of tokens desired.
-        words_per_token: Words per token ratio. Default 0.75 means
-                         ~1.33 tokens per word, matching typical BPE.
+        seed_offset: Added to base seed 42 for variety across prompts.
 
     Returns:
         A synthetic prompt string.
     """
-    target_words = max(1, int(target_tokens * words_per_token))
+    random.seed(42 + seed_offset)
+    # ~0.75 words per token for typical BPE tokenizer
+    target_words = max(1, int(target_tokens * 0.75))
     words = [random.choice(_WORD_POOL) for _ in range(target_words)]
-
-    # Structure as a question to get consistent response behaviour
-    prompt = (
-        "Please analyze the following technical description and provide "
-        "a detailed explanation: " + " ".join(words) + ". "
-        "What are the key implications?"
+    return (
+        "Analyze the following technical description: "
+        + " ".join(words)
+        + ". Explain the key implications."
     )
-    return prompt
 
 
 def generate_prompt_batch(
@@ -64,10 +60,9 @@ def generate_prompt_batch(
     Args:
         count: Number of prompts to generate.
         target_tokens: Target ISL for each prompt.
-        seed: Random seed for reproducibility.
+        seed: Base random seed for reproducibility.
 
     Returns:
         List of synthetic prompt strings.
     """
-    random.seed(seed)
-    return [generate_prompt(target_tokens) for _ in range(count)]
+    return [generate_prompt(target_tokens, seed_offset=i) for i in range(count)]
